@@ -11,7 +11,6 @@ http
 
     if (error) {
       console.error(error.message);
-      // Consume response data to free up memory
       res.resume();
       return;
     }
@@ -26,6 +25,7 @@ http
         const parsedData = JSON.parse(rawData);
         return fs.writeFile("./result/posts.json", JSON.stringify(parsedData), (err) => {
           if (err) throw err;
+          console.log("File written to posts.json");
         });
       } catch (e) {
         console.error(e.message);
