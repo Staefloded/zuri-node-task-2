@@ -23,6 +23,8 @@ http
     res.on("end", () => {
       try {
         const parsedData = JSON.parse(rawData);
+
+        // Write File to POSTS.JSON
         return fs.writeFile("./result/posts.json", JSON.stringify(parsedData), (err) => {
           if (err) throw err;
           console.log("File written to posts.json");
