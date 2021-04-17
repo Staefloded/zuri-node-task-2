@@ -1,18 +1,37 @@
 const fs = require("fs");
-const axios = require("axios").default;
+const http = require("http");
 
-(async function posts() {
-  try {
-    let res = await axios.get("http://jsonplaceholder.typicode.com/posts");
+http
+  .get("http://jsonplaceholder.typicode.com/posts", (res, req) => {
+    let error;
 
-    if (res.statusText !== "OK") {
-      throw new Error(`HTTP error! status: ${res.status}`);
+    if (res.statusCode !== 200) {
+      error = new Error("Request Failed.\n" + `Status Code: ${res.statusCode}`);
     }
 
-    return fs.writeFile("./result/posts.json", JSON.stringify(res.data), (err) => {
-      if (err) throw err;
+    if (error) {
+      console.error(error.message);
+      // Consume response data to free up memory
+      res.resume();
+      return;
+    }
+
+    res.setEncoding("utf8");
+    let rawData = "";
+    res.on("data", (chunk) => {
+      rawData += chunk;
     });
-  } catch (err) {
-    console.log(err);
-  }
-})();
+    res.on("end", () => {
+      try {
+        const parsedData = JSON.parse(rawData);
+        return fs.writeFile("./result/posts.json", JSON.stringify(parsedData), (err) => {
+          if (err) throw err;
+        });
+      } catch (e) {
+        console.error(e.message);
+      }
+    });
+  })
+  .on("error", (e) => {
+    console.error(`Got error: ${e.message}`);
+  });
